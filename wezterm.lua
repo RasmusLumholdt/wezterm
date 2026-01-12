@@ -2,7 +2,6 @@ local wezterm = require("wezterm")
 
 local config = wezterm.config_builder()
 
-require("smart-splits")
 --config.default_prog = { "powershell.exe" }
 config.initial_cols = 120
 config.initial_rows = 28
@@ -30,6 +29,48 @@ Shortcuts
 ]]
 --
 -- shortcut_configuration
+--
+
+local function is_vim(pane)
+    local process_info = pane:get_foreground_process_info()
+    local process_name = process_info and process_info.name
+
+    return process_name == "nvim" or process_name == "vim"
+end
+
+local direction_keys = {
+    Left = "h",
+    Down = "j",
+    Up = "k",
+    Right = "l",
+    -- reverse lookup
+    h = "Left",
+    j = "Down",
+    k = "Up",
+    l = "Right",
+}
+
+local function split_nav(resize_or_move, key)
+    return {
+        key = key,
+        mods = resize_or_move == "resize" and "META" or "CTRL",
+        action = wezterm.action_callback(function(win, pane)
+            if is_vim(pane) then
+                -- pass the keys through to vim/nvim
+                win:perform_action({
+                    SendKey = { key = key, mods = resize_or_move == "resize" and "META" or "CTRL" },
+                }, pane)
+            else
+                if resize_or_move == "resize" then
+                    win:perform_action({ AdjustPaneSize = { direction_keys[key], 3 } }, pane)
+                else
+                    win:perform_action({ ActivatePaneDirection = direction_keys[key] }, pane)
+                end
+            end
+        end),
+    }
+end
+
 config.leader = { key = "q", mods = "ALT", timeout_milliseconds = 2000 }
 config.keys = {
     {
@@ -62,6 +103,16 @@ config.keys = {
         key = "-",
         action = wezterm.action.SplitVertical({ domain = "CurrentPaneDomain" }),
     },
+
+    split_nav("move", "h"),
+    split_nav("move", "j"),
+    split_nav("move", "k"),
+    split_nav("move", "l"),
+    -- resize panes
+    split_nav("resize", "h"),
+    split_nav("resize", "j"),
+    split_nav("resize", "k"),
+    split_nav("resize", "l"),
     -- {
     --     mods = "LEADER",
     --     key = "h",
@@ -250,57 +301,4 @@ config.window_background_gradient = {
 config.text_background_opacity = 1
 config.window_background_opacity = 0.97
 
-local function is_vim(pane)
-    local process_info = pane:get_foreground_process_info()
-    local process_name = process_info and process_info.name
-
-    return process_name == "nvim" or process_name == "vim"
-end
-
-local direction_keys = {
-    Left = "h",
-    Down = "j",
-    Up = "k",
-    Right = "l",
-    -- reverse lookup
-    h = "Left",
-    j = "Down",
-    k = "Up",
-    l = "Right",
-}
-
-local function split_nav(resize_or_move, key)
-    return {
-        key = key,
-        mods = resize_or_move == "resize" and "META" or "CTRL",
-        action = wezterm.action_callback(function(win, pane)
-            if is_vim(pane) then
-                -- pass the keys through to vim/nvim
-                win:perform_action({
-                    SendKey = { key = key, mods = resize_or_move == "resize" and "META" or "CTRL" },
-                }, pane)
-            else
-                if resize_or_move == "resize" then
-                    win:perform_action({ AdjustPaneSize = { direction_keys[key], 3 } }, pane)
-                else
-                    win:perform_action({ ActivatePaneDirection = direction_keys[key] }, pane)
-                end
-            end
-        end),
-    }
-end
-
-local nav_keys = {
-    -- move between split panes
-    split_nav("move", "h"),
-    split_nav("move", "j"),
-    split_nav("move", "k"),
-    split_nav("move", "l"),
-    -- resize panes
-    split_nav("resize", "h"),
-    split_nav("resize", "j"),
-    split_nav("resize", "k"),
-    split_nav("resize", "l"),
-}
-config.keys = nav_keys
 return config
