@@ -2,7 +2,7 @@ local wezterm = require("wezterm")
 
 local config = wezterm.config_builder()
 
---config.default_prog = { "powershell.exe" }
+config.default_prog = { "powershell.exe" }
 config.initial_cols = 120
 config.initial_rows = 28
 config.font_size = 10
@@ -30,6 +30,7 @@ Shortcuts
 --
 -- shortcut_configuration
 --
+
 
 local function is_vim(pane)
     local process_info = pane:get_foreground_process_info()
@@ -80,7 +81,7 @@ config.keys = {
     },
     {
         mods = "LEADER",
-        key = "x",
+        key = "w",
         action = wezterm.action.CloseCurrentPane({ confirm = true }),
     },
     {
@@ -182,7 +183,7 @@ local function tab_title(tab_info)
 end
 
 wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
-    local title = " " .. tab.tab_index .. ": " .. tab_title(tab) .. " "
+    local title = " " .. tab.tab_index + 1 .. ": " .. tab_title(tab) .. " "
     local left_edge_text = ""
     local right_edge_text = ""
 
@@ -300,5 +301,6 @@ config.window_background_gradient = {
 
 config.text_background_opacity = 1
 config.window_background_opacity = 0.97
+
 
 return config
