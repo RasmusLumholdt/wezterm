@@ -2,7 +2,7 @@ local wezterm = require("wezterm")
 
 local config = wezterm.config_builder()
 
-config.default_prog = { "powershell.exe" }
+--config.default_prog = { "powershell.exe" }
 config.initial_cols = 120
 config.initial_rows = 28
 config.font_size = 10
@@ -156,7 +156,7 @@ config.keys = {
     -- },
 }
 
-for i = 0, 9 do
+for i = 1, 9 do
     -- leader + number to activate that tab
     table.insert(config.keys, {
         key = tostring(i),
@@ -165,11 +165,18 @@ for i = 0, 9 do
     })
 end
 
+-- leader + 0 to activate tab 10
+table.insert(config.keys, {
+    key = "0",
+    mods = "LEADER",
+    action = wezterm.action.ActivateTab(9),
+})
+
 -- tab bar
 config.hide_tab_bar_if_only_one_tab = false
 config.tab_bar_at_bottom = true
 config.use_fancy_tab_bar = false
-config.tab_and_split_indices_are_zero_based = true
+config.tab_and_split_indices_are_zero_based = false
 
 local function tab_title(tab_info)
     local title = tab_info.tab_title
@@ -183,7 +190,7 @@ local function tab_title(tab_info)
 end
 
 wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
-    local title = " " .. tab.tab_index + 1 .. ": " .. tab_title(tab) .. " "
+    local title = " " .. tab.tab_index .. ": " .. tab_title(tab) .. " "
     local left_edge_text = ""
     local right_edge_text = ""
 
